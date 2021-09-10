@@ -1,0 +1,2 @@
+class DailyHabit < ApplicationRecord
+end
