@@ -10,12 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_09_10_193500) do
+ActiveRecord::Schema.define(version: 2021_09_10_202346) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
+
+  create_table "habits", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.integer "target_frequency", null: false
+    t.datetime "archived_at"
+    t.boolean "deleted", default: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_habits_on_user_id"
+  end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.citext "email", null: false
@@ -29,4 +41,5 @@ ActiveRecord::Schema.define(version: 2021_09_10_193500) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "habits", "users"
 end
