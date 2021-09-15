@@ -18,24 +18,24 @@ module Api
 
       def create
         @user = User.new(user_params)
-        @user.email.downcase!
         @user.save!
 
         render json: @user
       rescue ActiveRecord::RecordNotUnique
         render_could_not_create_error('User with same email exists.')
-      rescue StandardError
-        render_could_not_create_error('Unable to create user.')
+      rescue StandardError => e
+        render_could_not_create_error("Unable to create user: #{e}")
       end
 
       def update
         @user = User.find(params[:id])
-        if @user
-          @user.update(user_params)
-          render json: { message: 'User successfully updated.' }, status: 200
-        else
-          render_could_not_create_error('Unable to update habit.')
-        end
+        @user.update(user_params)
+
+        render json: @user, status: 200
+      rescue ActiveRecord::RecordNotFound
+        render_not_found_error('User not found!')
+      rescue StandardError
+        render_could_not_create_error('Unable to update user.')
       end
 
       def destroy
@@ -44,16 +44,36 @@ module Api
           @user.destroy
           render json: { message: 'User successfully deleted.' }, status: 200
         else
-          render_could_not_create_error('Unable to delete habit.')
+          render_could_not_create_error('Unable to delete user.')
         end
+      end
+
+      def change_password
+        @user = User.find(params[:user_id])
+
+        if @user.authenticate(change_password_params[:current_password])
+          @user.password = change_password_params[:new_password]
+          @user.save!
+
+          render json: { message: 'Password successfully updated.' }, status: 200
+        else
+          render_unauthorized('Wrong password entered')
+        end
+      rescue ActiveRecord::RecordNotFound
+        render_not_found_error('User not found!')
+      rescue StandardError => e
+        render_could_not_create_error("Unable to update user: #{e}")
       end
 
       private
 
       def user_params
-        params.require(:user).permit(:email, :first_name, :password)
+        params.require(:user).permit(:email, :first_name, :last_name, :password)
       end
 
+      def change_password_params
+        params.permit(:current_password, :new_password)
+      end
     end
   end
 end
