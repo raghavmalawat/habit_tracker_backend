@@ -41,7 +41,6 @@ class User < ApplicationRecord
                     length: { maximum: 50 },
                     format: { with: VALID_EMAIL_REGEX }
 
-
   validates_presence_of :first_name
 
   before_save :to_lowercase

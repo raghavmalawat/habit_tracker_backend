@@ -17,10 +17,16 @@ module RequestExceptionHandler
     render_unauthorized('Unauthorized')
   rescue ActionController::UnpermittedParameters => e
     render_forbidden("You are not allowed to perform this action, #{e.message}")
+  rescue ActionController::ParameterMissing => e
+    render_bad_request("Missing Parameters #{e}")
   end
 
   def render_forbidden(message)
     render json: { error: message }, status: :forbidden
+  end
+
+  def render_bad_request(message)
+    render json: { error: message }, status: :bad_request
   end
 
   def render_unauthorized(message)

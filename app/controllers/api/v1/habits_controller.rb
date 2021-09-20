@@ -4,16 +4,18 @@ module Api
       before_action :require_login
 
       def index
-        @habits = Habit.all
+        @habits = Habit.where(users: current_user_id)
         render json: @habits
       end
 
       def show
+        @habit = find_habit
         render json: @habit
       end
 
       def create
         @habit = Habit.new(habit_params)
+        @habit.user_id = current_user_id
         if @habit.save
           render json: @habit
         else
@@ -22,15 +24,19 @@ module Api
       end
 
       def update
-        if @habit
-          @habit.update(habit_params)
-          render json: { message: 'Habit successfully updated.' }, status: 200
-        else
-          render_could_not_create_error('Unable to update habit.')
-        end
+        @habit = find_habit
+        @habit.update(habit_params)
+
+        render json: { data: @habit, message: 'Habit successfully updated.' }, status: 200
+      rescue ActiveRecord::RecordNotFound
+        render_not_found_error('Habit not found!')
+      rescue StandardError
+        render_could_not_create_error('Unable to update habit.')
       end
 
       def destroy
+        @habit = find_habit
+
         if @habit
           @habit.destroy
           render json: { message: 'Habit successfully deleted.' }, status: 200
@@ -39,14 +45,16 @@ module Api
         end
       end
 
-    private
+      private
 
       def habit_params
-        params.require(:habit).permit(:habit, :user_id)
+        params.require(:habit).permit(:name, :description, :target_frequency)
       end
 
       def find_habit
-        @habit = Habit.find(params[:id])
+        @habit = Habit.where(id: params[:id], user: current_user_id)
+      rescue ActiveRecord::RecordNotFound
+        render_not_found_error('Habit not found!')
       end
     end
   end
