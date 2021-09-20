@@ -4,6 +4,8 @@ module Api
   module V1
     class UsersController < ApplicationController
       include RequestExceptionHandler
+      before_action :require_login
+      skip_before_action :require_login, only: [:create]
 
       def index
         render json: User.all

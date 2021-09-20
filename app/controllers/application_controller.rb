@@ -22,6 +22,8 @@ class ApplicationController < ActionController::API
     token = request.headers['Authorization'].split('Bearer').last.strip
     @jwt_token_payload ||= JwtService.new.decode(token)
     @current_user_id ||= jwt_token_payload['user_id']
+  rescue StandardError
+    raise UnauthorizedError, 'Unauthorized'
   end
 
   def client_has_valid_token?
@@ -29,7 +31,7 @@ class ApplicationController < ActionController::API
   end
 
   def require_login
-    render json: { error: 'Unauthorized' }, status: :unauthorized unless client_has_valid_token?
+    raise UnauthorizedError, 'Unauthorized' unless client_has_valid_token?
   end
 
   def token(user_id)
