@@ -7,15 +7,20 @@ module RequestExceptionHandler
 
   private
 
-  def handle_with_exception
+  def exception_handling
     yield
-  rescue ActiveRecord::RecordNotFound => e
-    render_not_found_error('Resource could not be found')
-  rescue StandardError
-    render_unauthorized('You are not authorized to do this action')
-  ensure
-    # to address the thread variable leak issues in Puma/Thin webserver
-    Current.reset
+  rescue ArgumentError => e
+    render_error(e.message, :unprocessable_entity)
+  rescue ActiveRecord::RecordNotFound
+    render_not_found_error('Resource not found')
+  rescue UnauthorizedError
+    render_unauthorized('Unauthorized')
+  rescue ActionController::UnpermittedParameters => e
+    render_forbidden("You are not allowed to perform this action, #{e.message}")
+  end
+
+  def render_forbidden(message)
+    render json: { error: message }, status: :forbidden
   end
 
   def render_unauthorized(message)
