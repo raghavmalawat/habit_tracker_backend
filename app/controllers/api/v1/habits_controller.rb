@@ -10,7 +10,7 @@ module Api
 
       def show
         @habit = find_habit
-        render json: @habit
+        render json: @habit[0]
       end
 
       def create
@@ -25,7 +25,7 @@ module Api
 
       def update
         @habit = find_habit
-        @habit.update(habit_params)
+        @habit.update(habit_params.slice(:name, :description))
 
         render json: { data: @habit, message: 'Habit successfully updated.' }, status: 200
       rescue ActiveRecord::RecordNotFound
@@ -48,7 +48,12 @@ module Api
       private
 
       def habit_params
-        params.require(:habit).permit(:name, :description, :target_frequency)
+        params.require(:habit)
+              .permit(
+                :name,
+                :description,
+                habit_frequency_attributes: %i[monday tuesday wednesday thursday friday saturday sunday]
+              )
       end
 
       def find_habit
