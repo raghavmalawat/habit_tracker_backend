@@ -10,12 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_09_15_134311) do
+ActiveRecord::Schema.define(version: 2021_09_22_182127) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
+
+  create_table "habit_frequencies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "habit_id", null: false
+    t.integer "monday", default: 0
+    t.integer "tuesday", default: 0
+    t.integer "wednesday", default: 0
+    t.integer "thursday", default: 0
+    t.integer "friday", default: 0
+    t.integer "saturday", default: 0
+    t.integer "sunday", default: 0
+    t.boolean "deleted", default: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["habit_id"], name: "index_habit_frequencies_on_habit_id"
+  end
 
   create_table "habit_logs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
@@ -33,7 +48,6 @@ ActiveRecord::Schema.define(version: 2021_09_15_134311) do
     t.uuid "user_id", null: false
     t.string "name", null: false
     t.text "description"
-    t.integer "target_frequency", null: false
     t.datetime "archived_at"
     t.boolean "deleted", default: false
     t.datetime "created_at", precision: 6, null: false
@@ -52,6 +66,7 @@ ActiveRecord::Schema.define(version: 2021_09_15_134311) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "habit_frequencies", "habits"
   add_foreign_key "habit_logs", "habits"
   add_foreign_key "habit_logs", "users"
   add_foreign_key "habits", "users"
