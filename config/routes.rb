@@ -9,6 +9,8 @@ Rails.application.routes.draw do
       end
       resources :habits do
       end
+      resources :habit_logs do
+      end
     end
   end
 end
